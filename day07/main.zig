@@ -15,7 +15,13 @@ const Node = struct {
 
 pub fn main() !void {
     std.debug.print("day07\n", .{});
-    try solve(example);
+    const part1 = try solve(input);
+    std.debug.print("part1 = {d}\n", .{part1});
+}
+
+test "example" {
+    const answer = try solve(example);
+    try std.testing.expectEqual(answer, 95437);
 }
 
 fn buildTree(content: []const u8) !std.ArrayList(Node) {
@@ -62,7 +68,26 @@ fn printTree(tree: std.ArrayList(Node)) void {
     }
 }
 
-fn solve(content: []const u8) !void {
+fn computeTree(tree: std.ArrayList(Node), index: usize) usize {
+    if (tree.items[index].children.items.len == 0) {
+        const size = tree.items[index].total_size;
+        return size;
+    }
+    for (tree.items[index].children.items) |i| {
+        tree.items[index].total_size += computeTree(tree, i);
+    }
+    return tree.items[index].total_size;
+}
+
+fn solve(content: []const u8) !usize {
     const tree = try buildTree(content);
+    _ = computeTree(tree, 0);
     printTree(tree);
+    var sum: usize = 0;
+    for (tree.items) |node| {
+        if (node.total_size <= 100_000) {
+            sum += node.total_size;
+        }
+    }
+    return sum;
 }
